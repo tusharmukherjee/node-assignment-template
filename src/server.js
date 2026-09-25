@@ -1,12 +1,17 @@
 const express = require("express");
 const { testConnection } = require("./db/sequelize");
+const { placeBid } = require("./controllers/bid");
 
 const app = express();
 
 app.use(express.json());
 
-app.post("/bid", (req, res) => {
-  return res.status(501).json({ message: "TODO: implement" });
+app.post("/bid", async (req, res) => {
+  const { auction_id, user_id, amount } = req.body;
+
+  const result = await placeBid(auction_id, user_id, amount);
+
+  return res.status(result.status).json(result.body);
 });
 
 app.use((err, req, res, next) => {
