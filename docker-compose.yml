@@ -1,0 +1,42 @@
+services:
+  public-api:
+    build:
+      context: ./src
+      dockerfile: ../Dockerfile
+
+    ports:
+      - "9090:9090"
+
+    environment:
+      PORT: 9090
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/auction_db
+      DB_DIALECT: postgres
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+    
+    command: sh -c "npm run db:migrate && npm start"
+
+  postgres:
+    image: postgres:17-alpine
+
+    environment:
+      POSTGRES_DB: auction_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d auction_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
