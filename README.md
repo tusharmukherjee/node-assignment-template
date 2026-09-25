@@ -1,4 +1,5 @@
 # ASSIGNMENT-ID:  v#hdf38%44
+[How to run the project](HOW_TO_RUN.md)
 # Bid Assignment Starter
 
 ## Setup
