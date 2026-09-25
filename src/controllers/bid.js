@@ -87,6 +87,7 @@ async function placeBid(auction_id, user_id, amount) {
         };
       }
 
+      // Appending a new bid in bid table at last, after passing all the checks
       const bid = await Bid.create(
         {
           auctionId: auction_id,
@@ -98,7 +99,7 @@ async function placeBid(auction_id, user_id, amount) {
         }
       );
 
-      // After passing the all condition creating a new high bid for the auction_id
+      // After passing the all condition updating the auction row, with new high bid for the auction_id
       await auction.update(
         {
           currentTopBidAmount: amount,
