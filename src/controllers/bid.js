@@ -14,7 +14,9 @@ async function placeBid(auction_id, user_id, amount) {
   const sequelize = getSequelize();
 
   try {
+    // Creating the bid and updating the auction happen atomically, using sequalze.transactions
     const result = await sequelize.transaction(async (transaction) => {
+      // Lock this auction row until the transaction finishes.
       const auction = await Auction.findByPk(auction_id, {
         transaction,
         lock: transaction.LOCK.UPDATE
@@ -31,6 +33,7 @@ async function placeBid(auction_id, user_id, amount) {
 
       const now = new Date();
 
+      // Here checking the closing time if the bid is placed exactly or before the ending time
       if (now >= auction.endsAt) {
         return {
           status: 409,
@@ -40,6 +43,7 @@ async function placeBid(auction_id, user_id, amount) {
         };
       }
 
+      // Treat an identical auction/user/amount, checking if the user made a retry or mistaken twice api calls somehow.
       const existingBid = await Bid.findOne({
         where: {
           auctionId: auction_id,
@@ -59,6 +63,7 @@ async function placeBid(auction_id, user_id, amount) {
         };
       }
 
+      // Checking the current high bid made from the same user or not
       if (auction.currentTopBidUserId === user_id) {
         return {
           status: 409,
@@ -68,6 +73,7 @@ async function placeBid(auction_id, user_id, amount) {
         };
       }
 
+      // Equality is rejected: only a strictly greater amount is applicable
       if (
         auction.currentTopBidAmount !== null &&
         Number(amount) <= Number(auction.currentTopBidAmount)
@@ -92,6 +98,7 @@ async function placeBid(auction_id, user_id, amount) {
         }
       );
 
+      // After passing the all condition creating a new high bid for the auction_id
       await auction.update(
         {
           currentTopBidAmount: amount,
